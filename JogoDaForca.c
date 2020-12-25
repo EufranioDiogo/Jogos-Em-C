@@ -1,7 +1,176 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include "HeaderJogoDaForca.h"
 #define LIMITE_JOGADAS 5
+
+int main() {
+    int acertou = 0, enforcou = 0;
+    char palavraSecreta[20];
+    int indexLetrasReveladas[20];
+    char letraChutada;
+    int letraChutadaAcertada = 0;
+    int quantErros = 0;
+    int quantLetrasAcertadas = 0;
+    FILE* ficheiro;
+
+    ficheiro = fopen("JogoForcaBaseDeDados.txt", "r");
+
+    if (ficheiro != 0) {
+        escolhaPalavra(palavraSecreta, ficheiro);
+        inicializarIndexLetrasReveladas(indexLetrasReveladas, palavraSecreta);
+        abertura();
+
+        do {
+            printf("\nChute uma letra: ");
+            scanf(" %c", &letraChutada);
+
+            verificarLetraChutadaEmPalavraSecreta(palavraSecreta, indexLetrasReveladas, letraChutada, &quantLetrasAcertadas, &letraChutadaAcertada);
+            verificarSeVenceu(quantLetrasAcertadas, palavraSecreta, &acertou);
+            verificarSeErrou(letraChutadaAcertada, &quantErros, letraChutada);
+            imprimirPalavraSecreta(palavraSecreta, indexLetrasReveladas);
+            verificarSePerdeu(quantErros, &enforcou);
+            desenharForca(quantErros);
+            printf("\n");
+            letraChutadaAcertada = 0;
+        } while (!acertou && !enforcou);
+
+        if (acertou) {
+            imprimirTrofeu();
+        } else {
+            imprimirCaveira(palavraSecreta);
+        }
+
+        adicionarNovaPalavra(ficheiro);
+        
+    } else {
+        printf("\nAlgum erro ocorreu na abertura do ficheiro de base de dados.\nTERMINANDO PROGRAMA...");
+        exit(1);
+    }
+    return 0;
+}
+
+void imprimirTrofeu() {
+}
+
+
+void imprimirCaveira(char palavraSecreta[]) {
+    
+}
+
+
+
+void desenharForca(int quantErros) {
+    printf("\n\n");
+    printf(" _______ \n");
+    printf(" |/    | \n");
+    printf(" |    %c%c%c  \n", (quantErros >= 1 ? '(' : ' '),
+    (quantErros >= 1 ? '_' : ' '),
+    (quantErros >= 1 ? ')' : ' '));
+    printf(" |    %c%c%c\n", (quantErros >= 2 ? '\\' : ' '),
+    (quantErros >= 2 ? '|' : ' '),
+    (quantErros >= 2 ? '/' : ' '));
+    printf(" |     %c\n", (quantErros >= 3 ? '|' : ' '));
+    printf(" |     %c\n", (quantErros >= 4 ? '|' : ' '));
+    printf(" |    %c %c\n", (quantErros >= 5 ? '/' : ' '),
+    (quantErros >= 5 ? '\\' : ' '));
+    printf("_|___");
+}
+
+
+void adicionarNovaPalavra(FILE* ficheiro) {
+    int desejaAdicionarPalavra = 0;
+
+    printf("Deseja adicionar uma palavra na base de dados? (1) Sim, (2) Não: ");
+    scanf("%d", &desejaAdicionarPalavra);
+
+    if (desejaAdicionarPalavra != 0) {
+        char novaPalavra[35];
+        ficheiro = fopen("JogoForcaBaseDeDados.txt", "a");
+        
+        if (ficheiro != 0) {
+            printf("\nDigite a nova palavra(TODAS AS LETRAS EM MAÍUSCULA): ");
+            scanf("%s", novaPalavra);
+
+            fprintf(ficheiro, "\n%s", novaPalavra);
+            fclose(ficheiro);
+            aumentarNumeroDePalavrasNoBanco(ficheiro);
+        } else {
+            printf("\nErro abrindo o ficheiro");
+            exit(1);
+        }
+    } else {
+        printf("\nBeleza a gente se vê por aí.");
+    }
+}
+
+
+void aumentarNumeroDePalavrasNoBanco(FILE* ficheiro) {
+    ficheiro = fopen("JogoForcaBaseDeDados.txt", "r+");
+
+    if (ficheiro != 0) {
+        int quantidadeDePalavras;
+
+        fscanf(ficheiro, "%d", &quantidadeDePalavras);
+        quantidadeDePalavras += 1;
+        fseek(ficheiro, 0, 0);
+        fprintf(ficheiro, "%d\n", quantidadeDePalavras);
+        fclose(ficheiro);
+    } else {
+        printf("\nErro abrindo o ficheiro");
+        exit(1);
+    }
+}
+
+void verificarLetraChutadaEmPalavraSecreta(char palavraSecreta[], int indexLetrasReveladas[], char letraChutada, int* quantLetrasAcertadas, int* letraChutadaAcertada) {
+
+    for(int i = 0; palavraSecreta[i] != '\0'; i++) {
+        if (palavraSecreta[i] == letraChutada) {
+            if (indexLetrasReveladas[i] != i) {
+                indexLetrasReveladas[i] = i;
+                *quantLetrasAcertadas = *quantLetrasAcertadas + 1;
+                printf("Você acertou: a palavra tem a letra %c\n\n", letraChutada);
+            }
+            *letraChutadaAcertada = 1;
+        }
+    }
+}
+
+
+void verificarSeVenceu(int quantLetrasAcertadas, char palavraSecreta[], int* acertou) {
+    if (quantLetrasAcertadas == strlen(palavraSecreta)) {
+        *acertou = 1;
+    }
+}
+
+
+void verificarSeErrou(int letraChutadaAcertada, int* quantErros, char letraChutada) {
+    if (letraChutadaAcertada == 0) {
+        *quantErros = *quantErros + 1;
+        printf("\nVocê errou: a palavra NÃO tem a letra %c\nQuant erros: %d\n\n", letraChutada,*quantErros);
+    }
+}
+
+
+void imprimirPalavraSecreta(char palavraSecreta[], int indexLetrasReveladas[]) {
+    for (int j = 0; palavraSecreta[j] != '\0'; j++) {
+        if (j == indexLetrasReveladas[j]) {
+            printf("%c ", palavraSecreta[j]);
+        } else {
+            printf("_ ");
+        }
+    }
+}
+
+
+void verificarSePerdeu(int quantErros, int* enforcou) {
+    if (quantErros >= LIMITE_JOGADAS) {
+        printf("\nVocê Perdeu o Jogo;\n");
+        *enforcou = 1;
+    }
+}
+
 
 void abertura() {
     printf("/****************/\n");
@@ -9,57 +178,26 @@ void abertura() {
     printf("/****************/\n\n");
 }
 
-int main() {
-    int acertou = 0, enforcou = 0;
-    char palavraSecreta[] = {'M', 'E', 'L', 'A', 'N', 'C', 'I', 'A'};
-    int indexRevelados[] = {-1, -1, -1, -1, -1, -1, -1, -1};
-    char letraChutada;
-    int letraChutadaAcertada = 0;
-    int quantPerdidas = 0;
-    int quantLetrasAcertadas = 0;
 
-    abertura();
+void escolhaPalavra(char palavraSecreta[], FILE* ficheiro) {
+    int quantPalavrasNoFicheiro;
 
-    do {
-        printf("\nChute uma letra: ");
-        scanf(" %c", &letraChutada);
+    fscanf(ficheiro, "%d", &quantPalavrasNoFicheiro);
 
-        for(int i = 0; palavraSecreta[i] != '\0'; i++) {
-            if (palavraSecreta[i] == letraChutada) {
-                if (indexRevelados[i] != i) {
-                    indexRevelados[i] = i;
-                    quantLetrasAcertadas++;
-                }
-                letraChutadaAcertada = 1;
-            }
-        }
+    srand(time(NULL));
+    int palavraSorteada = rand() % (quantPalavrasNoFicheiro - 0 + 1) + 0;
 
-        if (quantLetrasAcertadas == strlen(palavraSecreta)) {
-            acertou = 1;
-        }
+    while (palavraSorteada) {
+        fscanf(ficheiro, "%s", palavraSecreta);
+        palavraSorteada--;
+    }
 
-        if (letraChutadaAcertada == 0) {
-            quantPerdidas++;
-            printf("ERROU\nJá Errou: %d vez(es)\n", quantPerdidas);
-        }
-
-        for (int j = 0; palavraSecreta[j] != '\0'; j++) {
-            if (j == indexRevelados[j]) {
-                printf(" %c ", palavraSecreta[j]);
-            } else {
-                printf("_ ");
-            }
-        }
-
-        if (quantPerdidas >= LIMITE_JOGADAS) {
-            printf("\nVocê Perdeu o Jogo;\n");
-            enforcou = 1;
-        }
-
-        printf("\n");
-        letraChutadaAcertada = 0;
-    } while (!acertou && !enforcou);
+    fclose(ficheiro);
+}
 
 
-    return 0;
+void inicializarIndexLetrasReveladas(int indexLetrasReveladas[], char palavraSecreta[]) {
+    for (int i = 0; palavraSecreta[i] != '\0'; i++) {
+        indexLetrasReveladas[i] = -1;
+    }
 }
