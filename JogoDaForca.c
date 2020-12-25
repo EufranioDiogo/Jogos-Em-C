@@ -23,10 +23,10 @@ int main() {
         abertura();
 
         do {
-            printf("\nChute uma letra: ");
-            scanf(" %c", &letraChutada);
+            leituraDaEntradaDoUsuario(&letraChutada);
 
             verificarLetraChutadaEmPalavraSecreta(palavraSecreta, indexLetrasReveladas, letraChutada, &quantLetrasAcertadas, &letraChutadaAcertada);
+            verificarSeAcertou(letraChutadaAcertada, letraChutada);
             verificarSeVenceu(quantLetrasAcertadas, palavraSecreta, &acertou);
             verificarSeErrou(letraChutadaAcertada, &quantErros, letraChutada);
             imprimirPalavraSecreta(palavraSecreta, indexLetrasReveladas);
@@ -41,9 +41,9 @@ int main() {
         } else {
             imprimirCaveira(palavraSecreta);
         }
-
-        adicionarNovaPalavra(ficheiro);
-        
+        if (acertou) {
+            adicionarNovaPalavra(ficheiro);
+        }
     } else {
         printf("\nAlgum erro ocorreu na abertura do ficheiro de base de dados.\nTERMINANDO PROGRAMA...");
         exit(1);
@@ -52,6 +52,7 @@ int main() {
 }
 
 void imprimirTrofeu() {
+
 }
 
 
@@ -87,18 +88,56 @@ void adicionarNovaPalavra(FILE* ficheiro) {
 
     if (desejaAdicionarPalavra != 0) {
         char novaPalavra[35];
-        ficheiro = fopen("JogoForcaBaseDeDados.txt", "a");
-        
-        if (ficheiro != 0) {
+        char palavraAux[35];
+        int palavraExiste = 0;
+
+        while (!palavraExiste) {
             printf("\nDigite a nova palavra(TODAS AS LETRAS EM MAÍUSCULA): ");
             scanf("%s", novaPalavra);
 
-            fprintf(ficheiro, "\n%s", novaPalavra);
-            fclose(ficheiro);
-            aumentarNumeroDePalavrasNoBanco(ficheiro);
-        } else {
-            printf("\nErro abrindo o ficheiro");
-            exit(1);
+            ficheiro = fopen("JogoForcaBaseDeDados.txt", "r");
+
+            if (ficheiro != 0) {
+                int quantPalavras;
+
+                fscanf(ficheiro, "%d", &quantPalavras);
+
+                while (quantPalavras > 0) {
+
+                    fscanf(ficheiro, "%s", palavraAux);
+
+                    if (strlen(palavraAux) == strlen(novaPalavra)) {
+                        palavraExiste = 1;
+
+                        for (int i = 0; palavraAux[i] != '\0'; i++) {
+                            if (palavraAux[i] != novaPalavra[i]) {
+                                palavraExiste = 0;
+                                break;
+                            }
+                        }
+                        if (palavraExiste == 1) {
+                            break;
+                        }
+                    }
+                    quantPalavras--;
+                }
+
+                fclose(ficheiro);
+
+                if (palavraExiste == 1) {
+                    printf("A palavra %s já existe\nTENTE OUTRA VEZ\n", novaPalavra);
+                    palavraExiste = 0;
+                } else {
+                    ficheiro = fopen("JogoForcaBaseDeDados.txt", "a");
+                    fprintf(ficheiro, "\n%s", novaPalavra);
+                    fclose(ficheiro);
+                    aumentarNumeroDePalavrasNoBanco(ficheiro);
+                    palavraExiste = 1;
+                }
+            } else {
+                printf("Problema na abertura do programa.");
+                exit(1);
+            }
         }
     } else {
         printf("\nBeleza a gente se vê por aí.");
@@ -112,7 +151,7 @@ void aumentarNumeroDePalavrasNoBanco(FILE* ficheiro) {
     if (ficheiro != 0) {
         int quantidadeDePalavras;
 
-        fscanf(ficheiro, "%d", &quantidadeDePalavras);
+        fscanf(ficheiro, "%04d", &quantidadeDePalavras);
         quantidadeDePalavras += 1;
         fseek(ficheiro, 0, 0);
         fprintf(ficheiro, "%d\n", quantidadeDePalavras);
@@ -123,6 +162,12 @@ void aumentarNumeroDePalavrasNoBanco(FILE* ficheiro) {
     }
 }
 
+void verificarSeAcertou(int letraChutadaAcertada, char letraChutada) {
+    if (letraChutadaAcertada == 1) {
+        printf("Você acertou: a palavra tem a letra %c\n\n", letraChutada);
+    }
+}
+
 void verificarLetraChutadaEmPalavraSecreta(char palavraSecreta[], int indexLetrasReveladas[], char letraChutada, int* quantLetrasAcertadas, int* letraChutadaAcertada) {
 
     for(int i = 0; palavraSecreta[i] != '\0'; i++) {
@@ -130,7 +175,6 @@ void verificarLetraChutadaEmPalavraSecreta(char palavraSecreta[], int indexLetra
             if (indexLetrasReveladas[i] != i) {
                 indexLetrasReveladas[i] = i;
                 *quantLetrasAcertadas = *quantLetrasAcertadas + 1;
-                printf("Você acertou: a palavra tem a letra %c\n\n", letraChutada);
             }
             *letraChutadaAcertada = 1;
         }
@@ -171,6 +215,15 @@ void verificarSePerdeu(int quantErros, int* enforcou) {
     }
 }
 
+void leituraDaEntradaDoUsuario(char* letraChutada) {
+    printf("\nChute uma letra: ");
+    scanf(" %c", letraChutada);
+
+    while (*letraChutada < 65 || *letraChutada > 90) {
+        printf("\nChute uma letra(MAIUSCULA): ");
+        scanf(" %c", letraChutada);
+    }
+}
 
 void abertura() {
     printf("/****************/\n");
