@@ -1,0 +1,15 @@
+void verificarLetraChutadaEmPalavraSecreta(char palavraSecreta[], int indexLetrasReveladas[], char letraChutada, int* quantLetrasAcertadas, int* letraChutadaAcertada);
+void verificarSeVenceu(int quantLetrasAcertadas, char palavraSecreta[], int* acertou);
+void verificarSePerdeu(int quantErros, int* enforcou);
+void verificarSeAcertou(int letraChutadaAcertada, char letraChutada);
+void verificarSeErrou(int letraChutadaAcertada, int* quantErros, char letraChutada);
+void imprimirPalavraSecreta(char palavraSecreta[], int indexLetrasReveladas[]);
+void leituraDaEntradaDoUsuario(char* letraChutada);
+void abertura();
+void escolhaPalavra(char palavraSecreta[], FILE* ficheiro);
+void inicializarIndexLetrasReveladas(int indexLetrasReveladas[], char palavraSecreta[]);
+void adicionarNovaPalavra(FILE* ficheiro);
+void aumentarNumeroDePalavrasNoBanco(FILE* ficheiro);
+void desenharForca(int quantErros);
+void imprimirTrofeu();
+void imprimirCaveira(char palavraSecreta[]);
