@@ -1,0 +1,1 @@
+void colocarParedes(char mapa[][]);
