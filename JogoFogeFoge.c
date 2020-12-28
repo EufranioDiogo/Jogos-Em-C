@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "HeaderJogoFoge.h"
+#include "fogefoge.h"
 #define LINHAS 5
 #define COLUNAS 10
-char** mapa;
-int linhas;
-int colunas;
+
+typedef struct mapa MAPA;
+MAPA m;
+
 
 int main() {
     FILE* ficheiro;
@@ -24,7 +26,7 @@ int main() {
             scanf(" %c", &comando);
             move(comando);
 
-        } while (!acabou())
+        } while (!acabou());
 
         liberarMapa();
     } else {
@@ -38,50 +40,51 @@ int main() {
 
 
 void lerMapa(FILE* ficheiro) {
-    fscanf(ficheiro, "%d %d", &linhas, &colunas);
-    alocaMapa(linhas, colunas);
-    processarMapa(ficheiro, linhas);
+    fscanf(ficheiro, "%d %d", &m.linhas, &m.colunas);
+    alocaMapa();
+    processarMapa(ficheiro);
     fclose(ficheiro);
 }
 
 void alocaMapa() {
-    mapa = malloc(sizeof(char*) * linhas);
+    m.matriz = malloc(sizeof(char*) * m.linhas);
 
-    for (int i = 0; i < linhas; i++) {
-        *(mapa + i) = malloc(sizeof(char) * colunas + 1);
+    for (int i = 0; i < m.linhas; i++) {
+        *(m.matriz + i) = malloc(sizeof(char) * m.colunas + 1);
     }
 }
 
 void processarMapa(FILE* ficheiro) {
-    for (int i = 0; i < linhas; i++) {
-        fscanf(ficheiro, "%s", mapa[i]);
+    for (int i = 0; i < m.linhas; i++) {
+        fscanf(ficheiro, "%s", m.matriz[i]);
     }
 }
 
 void liberarMapa() {
-    for (int i = 0; i < linhas; i++) {
-        free(mapa[i]);
+    for (int i = 0; i < m.linhas; i++) {
+        free(m.matriz[i]);
     }
-    free(mapa);
+    free(m.matriz);
 }
 
 void imprimeMapa() {
-    for (int i = 0; i < linhas; i++) {
-        printf("%s\n", mapa[i]);
+    for (int i = 0; i < m.linhas; i++) {
+        printf("%s\n", m.matriz[i]);
     }
 }
 
-void acabou() {
+int acabou() {
     return 0;
 }
 
 void move(char comando) {
     int x;
     int y;
+    int letraErrada = 0;
 
-    for (int i = 0; i < linhas; i++) {
-        for (int j = 0; j < colunas; j++) {
-            if (mapa[i][j] == '@') {
+    for (int i = 0; i < m.linhas; i++) {
+        for (int j = 0; j < m.colunas; j++) {
+            if (m.matriz[i][j] == '@') {
                 y = i;
                 x = j;
                 break;
@@ -91,19 +94,21 @@ void move(char comando) {
 
     switch(comando) {
         case 'w':
-            mapa[y - 1][x] = '@';
+            m.matriz[y - 1][x] = '@';
             break;
         case 'a':
-            mapa[y][x - 1] = '@';
+            m.matriz[y][x - 1] = '@';
             break;
         case 's':
-            mapa[y + 1][x] = '@';
+            m.matriz[y + 1][x] = '@';
             break;
         case 'd':
-            mapa[y][x + 1] = '@';
+            m.matriz[y][x + 1] = '@';
             break;
         default:
-            mapa[y][x] = ' ';
-            break;
+            letraErrada = 1;
+    }
+    if (!letraErrada) {
+        m.matriz[y][x] = ' ';
     }
 }
