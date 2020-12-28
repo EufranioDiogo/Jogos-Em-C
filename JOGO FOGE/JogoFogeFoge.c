@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "fogefoge.h"
-#include "mapa.h"
 
-typedef mapa Mapa;
-Mapa m;
+struct mapa {
+    char** matriz;
+    int linhas;
+    int colunas;
+};
 
+typedef struct mapa MAPA;
+MAPA m;
 
 int main() {
     FILE* ficheiro;
@@ -15,10 +19,10 @@ int main() {
     if (ficheiro != 0) {
         
 
-        lerMapa(ficheiro, m);
+        lerMapa(ficheiro);
 
         do {
-            imprimeMapa(m);
+            imprimeMapa();
 
             char comando;
             scanf(" %c", &comando);
@@ -34,7 +38,6 @@ int main() {
     return 0;
 }
 
-
 int acabou() {
     return 0;
 }
@@ -42,7 +45,7 @@ int acabou() {
 void move(char comando) {
     int x;
     int y;
-    int letraErrada = 0;
+    int comandoIncorrecto = 0;
 
     for (int i = 0; i < m.linhas; i++) {
         for (int j = 0; j < m.colunas; j++) {
@@ -68,22 +71,44 @@ void move(char comando) {
             m.matriz[y][x + 1] = '@';
             break;
         default:
-            letraErrada = 1;
+            comandoIncorrecto = 1;
+            break;
     }
-    if (!letraErrada) {
+    if (!comandoIncorrecto) {
         m.matriz[y][x] = ' ';
     }
 }
 
-void lerMapa(FILE* ficheiro, mapa m) {
+void lerMapa(FILE* ficheiro) {
     fscanf(ficheiro, "%d %d", &m.linhas, &m.colunas);
-    alocaMapa(m);
-    processarMapa(ficheiro, );
+    alocaMapa();
+    processarMapa(ficheiro);
     fclose(ficheiro);
 }
 
-void processarMapa(FILE* ficheiro, mapa m) {
+void processarMapa(FILE* ficheiro) {
     for (int i = 0; i < m.linhas; i++) {
         fscanf(ficheiro, "%s", m.matriz[i]);
+    }
+}
+
+void alocaMapa() {
+    m.matriz = malloc(sizeof(char*) * m.linhas);
+
+    for (int i = 0; i < m.linhas; i++) {
+        *(m.matriz + i) = malloc(sizeof(char) * m.colunas + 1);
+    }
+}
+
+void liberarMapa() {
+    for (int i = 0; i < m.linhas; i++) {
+        free(m.matriz[i]);
+    }
+    free(m.matriz);
+}
+
+void imprimeMapa() {
+    for (int i = 0; i < m.linhas; i++) {
+        printf("%s\n", m.matriz[i]);
     }
 }
