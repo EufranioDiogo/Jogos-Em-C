@@ -4,8 +4,6 @@ struct mapa {
     int colunas;
 };
 
-void alocaMapa();
-void processarMapa(FILE* ficheiro);
-void liberarMapa();
-void lerMapa(FILE* ficheiro);
-void imprimeMapa();
+void alocaMapa(mapa m);
+void liberarMapa(mapa m);
+void lerMapa(FILE* ficheiro, mapa m);
